@@ -39,7 +39,25 @@
 //// from http://www.opencores.org/lgpl.shtml                     ////
 ////                                                              ////
 //////////////////////////////////////////////////////////////////////
-`include "tap_defines.v"
+
+
+// Define IDCODE Value
+`define IDCODE_VALUE  32'h149511c3
+// 0001             version
+// 0100100101010001 part number (IQ)
+// 00011100001      manufacturer id (flextronics)
+// 1                required by standard
+
+// Length of the Instruction register
+`define IR_LENGTH 4
+
+// Supported Instructions
+`define USER1          4'b0000
+`define SAMPLE_PRELOAD  4'b0001
+`define IDCODE          4'b0010
+`define DEBUG           4'b1000
+`define USER2           4'b1001
+`define BYPASS          4'b1111
 
 // Top module
 module tap_top(
@@ -59,11 +77,9 @@ module tap_top(
   update_dr_o,
   capture_dr_o,
                 
-  // Select signals for boundary scan or mbist
-  extest_select_o, 
-  sample_preload_select_o,
-  mbist_select_o,
-  debug_select_o,
+  // Select signals for USER1 or USER2 register
+  user1_select_o,
+  user2_select_o,
                 
   // TDO signal that is connected to TDI of sub-modules.
   tdi_o, 
@@ -91,11 +107,10 @@ output  pause_dr_o;
 output  update_dr_o;
 output  capture_dr_o;
 
-// Select signals for boundary scan or mbist
-output  extest_select_o;
-output  sample_preload_select_o;
-output  mbist_select_o;
-output  debug_select_o;
+
+output sample_preload_select_o;
+output user1_select_o;
+output user2_select_o;
 
 // TDO signal that is connected to TDI of sub-modules.
 output  tdi_o;
@@ -124,10 +139,10 @@ reg     exit2_ir;
 reg     update_ir;
 
 // Wires which depend on the current value in the IR
-reg     extest_select;
+reg     user1_select;
 reg     sample_preload_select;
 reg     idcode_select;
-reg     mbist_select;
+reg     user1_select;
 reg     debug_select;
 reg     bypass_select;
 
@@ -144,11 +159,10 @@ assign pause_dr_o = pause_dr;
 assign update_dr_o = update_dr;
 assign capture_dr_o = capture_dr;
 
-assign extest_select_o = extest_select;
 assign sample_preload_select_o = sample_preload_select;
-assign mbist_select_o = mbist_select;
-assign debug_select_o = debug_select;
 
+assign user1_select_o = user1_select;
+assign user2_select_o = user2_select;
 
 /**********************************************************************************
 *                                                                                 *
@@ -435,18 +449,18 @@ assign bypassed_tdo = bypass_reg;   // This is latched on a negative TCK edge af
 **********************************************************************************/
 always @ (latched_jtag_ir)
 begin
-  extest_select           = 1'b0;
+  user1_select           = 1'b0;
   sample_preload_select   = 1'b0;
   idcode_select           = 1'b0;
-  mbist_select            = 1'b0;
+  user1_select            = 1'b0;
   debug_select            = 1'b0;
   bypass_select           = 1'b0;
 
   case(latched_jtag_ir)    /* synthesis parallel_case */ 
-    `EXTEST:            extest_select           = 1'b1;    // External test
+    `USER1:            user1_select           = 1'b1;    // External test
     `SAMPLE_PRELOAD:    sample_preload_select   = 1'b1;    // Sample preload
     `IDCODE:            idcode_select           = 1'b1;    // ID Code
-    `MBIST:             mbist_select            = 1'b1;    // Mbist test
+    `USER2:             user1_select            = 1'b1;    // Mbist test
     `DEBUG:             debug_select            = 1'b1;    // Debug
     `BYPASS:            bypass_select           = 1'b1;    // BYPASS
     default:            bypass_select           = 1'b1;    // BYPASS
@@ -473,8 +487,8 @@ begin
         `IDCODE:            tdo_mux_out = idcode_tdo;       // Reading ID code
         `DEBUG:             tdo_mux_out = debug_tdo_i;      // Debug
         `SAMPLE_PRELOAD:    tdo_mux_out = bs_chain_tdo_i;   // Sampling/Preloading
-        `EXTEST:            tdo_mux_out = bs_chain_tdo_i;   // External test
-        `MBIST:             tdo_mux_out = mbist_tdo_i;      // Mbist test
+        `USER1:            tdo_mux_out = bs_chain_tdo_i;   // External test
+        `USER2:             tdo_mux_out = mbist_tdo_i;      // Mbist test
         default:            tdo_mux_out = bypassed_tdo;     // BYPASS instruction
       endcase
     end

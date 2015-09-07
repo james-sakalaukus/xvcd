@@ -1,20 +1,37 @@
-This is a daemon that listens to "xilinx_xvc" (xilinx virtual cable) traffic and 
-operates JTAG over GPIOs.
 
-It was written for the NeTV, but the NeTV silvermoon hardware doesn't have the 
-necessary GPIO-to-JTAG connections.
+Attempt to use ChipScope remotely on a device without a physical JTAG port.  
 
-I've chosen the following connections:
+Device has access to PCI and/or Ethernet.
 
-TDI - GPIO104  - SPARE_IO1 (J102, test point)
-TDO - GPIO35   - MMC3_ALT_CMD (available on RP116, bottom)
-TCK - GPIO118  - FPGA_CCLK (available between R800 and R801, shared with serial configuration)
-TMS - GPIO36   - MMC3_ALT_CLK (available on RP116, bottom)
+Ideas from:
 
-You should easily be able to make it support other hardware as well.
-
-The daemon listens on port 2542, and multiplexes between multiple connections.
-
-I've tested Impact FPGA Programming, IDCODE looping, and Chipscope.
-
-Have fun!
+  https://sites.google.com/site/dbarawn/fpga-stuff/xilinxbscanequivalentforchipscopeuse
+  https://github.com/freecores/adv_debug_sys
+  https://github.com/tmbinc/xvcd
+  
+This project started as a clone from xvcd.
+  
+  
+  
+  
+Original XVCD Readme:
+  This is a daemon that listens to "xilinx_xvc" (xilinx virtual cable) traffic and 
+  operates JTAG over GPIOs.
+  
+  It was written for the NeTV, but the NeTV silvermoon hardware doesn't have the 
+  necessary GPIO-to-JTAG connections.
+  
+  I've chosen the following connections:
+  
+  TDI - GPIO104  - SPARE_IO1 (J102, test point)
+  TDO - GPIO35   - MMC3_ALT_CMD (available on RP116, bottom)
+  TCK - GPIO118  - FPGA_CCLK (available between R800 and R801, shared with serial configuration)
+  TMS - GPIO36   - MMC3_ALT_CLK (available on RP116, bottom)
+  
+  You should easily be able to make it support other hardware as well.
+  
+  The daemon listens on port 2542, and multiplexes between multiple connections.
+  
+  I've tested Impact FPGA Programming, IDCODE looping, and Chipscope.
+  
+  Have fun!
